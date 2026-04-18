@@ -48,16 +48,31 @@ final class DdslCompilerTest {
     DdslException err = assertThrows(DdslException.class, () -> compiler.compileToDockerfile("""
         stage image as image {
           base chainguard { variant runtime distro wolfi image "img" }
-          copy artifact "jar" to "/app/app.jar"
+          copy artifact jar to "/app/app.jar"
         }
         """));
     assertTrue(err.diagnostic().message().contains("artifact 'jar' is referenced"));
   }
 
   @Test
+  void rejectsArtifactQualifiedWithWrongStage() {
+    DdslException err = assertThrows(DdslException.class, () -> compiler.compileToDockerfile("""
+        stage package as build {
+          base chainguard { variant dev distro wolfi image "img" }
+          produces artifact application at "/app/target/application.jar"
+        }
+        stage image as image {
+          base chainguard { variant runtime distro wolfi image "img" }
+          copy artifact other_stage.application as app to "/app/app.jar"
+        }
+        """));
+    assertTrue(err.diagnostic().message().contains("but was produced by stage 'package'"));
+  }
+
+  @Test
   void rejectsRuntimeOutsideImageStage() {
     DdslException err = assertThrows(DdslException.class, () -> compiler.compileToDockerfile("""
-        stage build-java as build {
+        stage package as build {
           base chainguard { variant dev distro wolfi image "img" }
           runtime java { jar "/app/app.jar" }
         }
@@ -71,7 +86,7 @@ final class DdslCompilerTest {
         stage image as image {
           base chainguard { variant runtime distro wolfi image "img" }
         }
-        stage build-go as build {
+        stage package as build {
           base chainguard { variant dev distro wolfi image "img2" }
         }
         """));
@@ -91,13 +106,23 @@ final class DdslCompilerTest {
   @Test
   void rejectsGoBuildWithWildcardArtifactOutput() {
     DdslException err = assertThrows(DdslException.class, () -> compiler.compileToDockerfile("""
-        stage build-go as build {
+        stage package as build {
           base chainguard { variant dev distro wolfi image "img" }
           tool go { build true }
-          produces artifact "binary" at "/app/bin/*"
+          produces artifact binary at "/app/bin/*"
         }
         """));
     assertTrue(err.diagnostic().message().contains("go build output artifact must use an exact path"));
+  }
+
+  @Test
+  void rejectsHyphenatedIdentifiers() {
+    DdslException err = assertThrows(DdslException.class, () -> compiler.compileToDockerfile("""
+        stage build-java as build {
+          base chainguard { variant dev distro wolfi image "img" }
+        }
+        """));
+    assertTrue(err.diagnostic().message().contains("hyphenated identifiers are not supported"));
   }
 
   private void assertGolden(String name) throws IOException {

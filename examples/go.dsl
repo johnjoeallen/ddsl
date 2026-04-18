@@ -1,6 +1,6 @@
 let REGISTRY = "docker.io"
 
-stage build-go as build {
+stage package as build {
   base chainguard {
     variant dev
     distro  wolfi
@@ -22,7 +22,7 @@ stage build-go as build {
     build true
   }
 
-  produces artifact "region-api" at "/go/src/region-api/region-api"
+  produces artifact region_api at "/go/src/region-api/region-api"
 }
 
 stage image as image {
@@ -35,7 +35,7 @@ stage image as image {
   workdir "/go/src/region-api"
   user "nonroot"
 
-  copy artifact "region-api" as "runtime-region-api" to "/go/src/region-api/region-api"
+  copy artifact package.region_api as runtime_region_api to "/go/src/region-api/region-api"
 
   carry tool git
   carry tool ca-certificates

@@ -3,7 +3,7 @@ set -eu
 
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 REPO_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
-JAR="$REPO_ROOT/ddsl-cli/target/ddsl-cli-0.1.0-SNAPSHOT-all.jar"
+JAR="$REPO_ROOT/ddsl-cli/target/ddsl-cli-0.1.0-SNAPSHOT.jar"
 
 if [ ! -f "$JAR" ]; then
   (cd "$REPO_ROOT" && mvn -q -pl ddsl-cli -am package)

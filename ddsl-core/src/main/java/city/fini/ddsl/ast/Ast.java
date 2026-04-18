@@ -56,7 +56,7 @@ public final class Ast {
 
   public record CopyPaths(List<Node<String>> sources, Node<String> dest, Span span) implements StageStmt {}
 
-  public record CopyArtifact(Node<String> name, Optional<Node<String>> targetName, Node<String> dest, Span span)
+  public record CopyArtifact(Optional<Node<String>> sourceStage, Node<String> name, Optional<Node<String>> targetName, Node<String> dest, Span span)
       implements StageStmt {}
 
   public record ToolBlock(Node<ToolKind> kind, ToolConfig config, Span span) implements StageStmt {}

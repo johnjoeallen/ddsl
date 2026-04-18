@@ -1,6 +1,6 @@
 let REGISTRY = "docker.io"
 
-stage build-java as build {
+stage package as build {
   base chainguard {
     variant dev
     distro  wolfi
@@ -23,7 +23,7 @@ stage build-java as build {
     skipTests true
   }
 
-  produces artifact "application" at "/app/target/application-*.jar"
+  produces artifact application at "/app/target/application-*.jar"
 }
 
 stage image as image {
@@ -36,7 +36,7 @@ stage image as image {
   workdir "/app"
   user "nonroot"
 
-  copy artifact "application" as "app.jar" to "/app/app.jar"
+  copy artifact package.application as app to "/app/app.jar"
 
   runtime java {
     jar "/app/app.jar"

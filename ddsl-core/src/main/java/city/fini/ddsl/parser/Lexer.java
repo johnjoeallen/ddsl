@@ -44,6 +44,14 @@ final class Lexer {
           pos++;
           tokens.add(new Token(TokenType.COMMA, ",", new Span(start, pos)));
         }
+        case '-' -> {
+          pos++;
+          tokens.add(new Token(TokenType.DASH, "-", new Span(start, pos)));
+        }
+        case '.' -> {
+          pos++;
+          tokens.add(new Token(TokenType.DOT, ".", new Span(start, pos)));
+        }
         case '=' -> {
           pos++;
           tokens.add(new Token(TokenType.EQUAL, "=", new Span(start, pos)));
@@ -120,6 +128,6 @@ final class Lexer {
   }
 
   private boolean isIdentChar(char c) {
-    return Character.isLetterOrDigit(c) || c == '_' || c == '-';
+    return Character.isLetterOrDigit(c) || c == '_';
   }
 }

@@ -63,6 +63,12 @@ public final class SemanticAnalyzer {
           Optional<String> targetName = copy.targetName().map(target -> resolveString(target.value(), variables, target.span()));
           ArtifactLocation artifact = Optional.ofNullable(artifacts.get(name)).orElseThrow(() ->
               new DdslException("artifact '" + name + "' is referenced in stage '" + stage.name().value() + "' but was never produced", copy.name().span()));
+          if (copy.sourceStage().isPresent() && !artifact.fromStage().equals(copy.sourceStage().get().value())) {
+            throw new DdslException(
+                "artifact '" + name + "' is referenced from stage '" + copy.sourceStage().get().value()
+                    + "' but was produced by stage '" + artifact.fromStage() + "'",
+                copy.sourceStage().get().span());
+          }
           ops.add(new Model.CopyArtifact(
               name,
               targetName,

@@ -1,6 +1,6 @@
 let REGISTRY = "docker.io"
 
-stage build-node as build {
+stage package as build {
   base chainguard {
     variant dev
     distro  wolfi
@@ -24,7 +24,7 @@ stage build-node as build {
 
   copy ["./"] to "./"
 
-  produces artifact "node-application" at "/usr/src/app"
+  produces artifact node_application at "/usr/src/app"
 }
 
 stage image as image {
@@ -37,7 +37,7 @@ stage image as image {
   workdir "/usr/src/app"
   user "nonroot"
 
-  copy artifact "node-application" as "node-app" to "/usr/src/app"
+  copy artifact package.node_application as node_app to "/usr/src/app"
 
   carry tool aws-cli
 

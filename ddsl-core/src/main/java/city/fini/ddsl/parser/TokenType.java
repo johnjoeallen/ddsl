@@ -9,6 +9,8 @@ enum TokenType {
   LBRACKET,
   RBRACKET,
   COMMA,
+  DASH,
+  DOT,
   EQUAL,
   EOF
 }

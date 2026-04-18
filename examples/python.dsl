@@ -1,6 +1,6 @@
 let REGISTRY = "docker.io"
 
-stage build-python as build {
+stage package as build {
   base chainguard {
     variant dev
     distro  wolfi
@@ -20,7 +20,7 @@ stage build-python as build {
 
   copy ["./"] to "./"
 
-  produces artifact "python-application" at "/usr/src/app"
+  produces artifact python_application at "/usr/src/app"
 }
 
 stage image as image {
@@ -33,7 +33,7 @@ stage image as image {
   workdir "/usr/src/app"
   user "nonroot"
 
-  copy artifact "python-application" as "python-app" to "/usr/src/app"
+  copy artifact package.python_application as python_app to "/usr/src/app"
 
   runtime python {
     entry "app.py"

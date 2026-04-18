@@ -127,14 +127,19 @@ public final class DdslParser {
   private StageStmt parseCopy() {
     Token start = expectIdent("copy");
     if (matchIdent("artifact")) {
-      Node<String> name = stringNode();
+      Node<String> name = identNode();
+      Optional<Node<String>> sourceStage = Optional.empty();
+      if (match(TokenType.DOT)) {
+        sourceStage = Optional.of(name);
+        name = identNode();
+      }
       Optional<Node<String>> target = Optional.empty();
       if (matchIdent("as")) {
-        target = Optional.of(stringNode());
+        target = Optional.of(identNode());
       }
       expectIdent("to");
       Node<String> dest = stringNode();
-      return new CopyArtifact(name, target, dest, new Span(start.span().start(), dest.span().end()));
+      return new CopyArtifact(sourceStage, name, target, dest, new Span(start.span().start(), dest.span().end()));
     }
     List<Node<String>> sources = stringList();
     expectIdent("to");
@@ -209,7 +214,7 @@ public final class DdslParser {
   private ArtifactDecl parseProduces() {
     Token start = expectIdent("produces");
     expectIdent("artifact");
-    Node<String> name = stringNode();
+    Node<String> name = identNode();
     expectIdent("at");
     Node<String> path = stringNode();
     return new ArtifactDecl(name, path, new Span(start.span().start(), path.span().end()));
@@ -218,7 +223,7 @@ public final class DdslParser {
   private CarryTool parseCarry() {
     Token start = expectIdent("carry");
     expectIdent("tool");
-    Node<String> name = identNode();
+    Node<String> name = logicalNameNode();
     return new CarryTool(name, new Span(start.span().start(), name.span().end()));
   }
 
@@ -247,7 +252,7 @@ public final class DdslParser {
     List<Node<String>> values = new ArrayList<>();
     if (!check(TokenType.RBRACKET)) {
       do {
-        values.add(identNode());
+        values.add(logicalNameNode());
       } while (match(TokenType.COMMA) && !check(TokenType.RBRACKET));
     }
     expect(TokenType.RBRACKET, "expected ']'");
@@ -268,7 +273,22 @@ public final class DdslParser {
 
   private Node<String> identNode() {
     Token token = expect(TokenType.IDENT, "expected identifier");
+    if (check(TokenType.DASH)) {
+      throw error(peek(), "hyphenated identifiers are not supported; use '_' in identifiers");
+    }
     return new Node<>(token.text(), token.span());
+  }
+
+  private Node<String> logicalNameNode() {
+    Token first = expect(TokenType.IDENT, "expected logical name");
+    StringBuilder value = new StringBuilder(first.text());
+    int end = first.span().end();
+    while (match(TokenType.DASH)) {
+      Token segment = expect(TokenType.IDENT, "expected name segment after '-'");
+      value.append('-').append(segment.text());
+      end = segment.span().end();
+    }
+    return new Node<>(value.toString(), new Span(first.span().start(), end));
   }
 
   private Node<String> stringNode() {
