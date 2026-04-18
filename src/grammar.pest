@@ -1,0 +1,60 @@
+program = { SOI ~ item* ~ EOI }
+item = _{ let_decl | stage_decl }
+
+let_decl = { "let" ~ ident ~ "=" ~ string }
+
+stage_decl = { "stage" ~ ident ~ "as" ~ stage_kind ~ "{" ~ stage_stmt* ~ "}" }
+stage_kind = { "build" | "test" | "image" }
+stage_stmt = _{ base_decl | workdir_stmt | user_stmt | update_stmt | tools_block | copy_artifact_stmt | copy_paths_stmt | tool_block | produces_stmt | carry_stmt | runtime_block | expose_stmt }
+
+base_decl = { "base" ~ base_family ~ "{" ~ base_field* ~ "}" }
+base_family = { "chainguard" }
+base_field = _{ variant_field | distro_field | image_field }
+variant_field = { "variant" ~ variant }
+variant = { "dev" | "runtime" }
+distro_field = { "distro" ~ distro }
+distro = { "wolfi" | "debian" | "ubuntu" | "rhel" | "alpine" | "distroless" | "windows" }
+image_field = { "image" ~ string }
+
+workdir_stmt = { "workdir" ~ string }
+user_stmt = { "user" ~ string }
+update_stmt = { "update" }
+
+tools_block = { "tools" ~ "{" ~ build_tools ~ "}" }
+build_tools = { "build" ~ ident_list }
+ident_list = { "[" ~ ident ~ ("," ~ ident)* ~ ","? ~ "]" }
+string_list = { "[" ~ string ~ ("," ~ string)* ~ ","? ~ "]" }
+
+copy_paths_stmt = { "copy" ~ string_list ~ "to" ~ string }
+copy_artifact_stmt = { "copy" ~ "artifact" ~ string ~ artifact_target? ~ "to" ~ string }
+artifact_target = { "as" ~ string }
+
+tool_block = { "tool" ~ tool_kind ~ "{" ~ tool_field* ~ "}" }
+tool_kind = { "go" | "maven" | "python" | "node" }
+tool_field = _{ go_build_field | maven_goals_field | maven_skip_tests_field | python_pip_block | node_install_field }
+go_build_field = { "build" ~ boolean }
+maven_goals_field = { "goals" ~ string_list }
+maven_skip_tests_field = { "skipTests" ~ boolean }
+python_pip_block = { "pip" ~ "{" ~ requirements_field ~ "}" }
+requirements_field = { "requirements" ~ string }
+node_install_field = { "install" ~ node_install }
+node_install = { "prod" }
+
+produces_stmt = { "produces" ~ "artifact" ~ string ~ "at" ~ string }
+carry_stmt = { "carry" ~ "tool" ~ ident }
+
+runtime_block = { "runtime" ~ runtime_kind ~ "{" ~ runtime_field* ~ "}" }
+runtime_kind = { "binary" | "java" | "python" | "node" }
+runtime_field = _{ runtime_entry_field | runtime_jar_field }
+runtime_entry_field = { "entry" ~ string }
+runtime_jar_field = { "jar" ~ string }
+
+expose_stmt = { "expose" ~ integer }
+
+boolean = { "true" | "false" }
+integer = @{ ASCII_DIGIT+ }
+ident = @{ (ASCII_ALPHANUMERIC | "_" | "-")+ }
+string = @{ "\"" ~ ( "\\\"" | "\\\\" | !("\"") ~ ANY )* ~ "\"" }
+
+WHITESPACE = _{ " " | "\t" | NEWLINE }
+COMMENT = _{ "#" ~ (!NEWLINE ~ ANY)* }
