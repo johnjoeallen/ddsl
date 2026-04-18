@@ -350,3 +350,7 @@ expected/                  golden Dockerfile outputs
 - Carried paths currently exist for `git`, `ca-certificates`, and `aws-cli`.
 - Wildcard artifact paths are supported for copying build outputs, but the
   compiler does not inspect the build context to prove how many files match.
+
+## License
+
+`ddsl` is licensed under the Apache License, Version 2.0. See `LICENSE`.
