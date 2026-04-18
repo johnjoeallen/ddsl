@@ -1,6 +1,7 @@
 # ddsl
 
-`ddsl` is a Rust compiler for an intent-driven container build DSL.
+`ddsl` is an intent-driven container build DSL compiler packaged as a Maven
+plugin and a command-line tool.
 
 Instead of hand-authoring Dockerfile mechanics, you describe the build you want:
 base image metadata, language-aware build steps, tools, artifacts, and runtime
@@ -9,6 +10,15 @@ Dockerfile.
 
 This is not a Dockerfile wrapper and not a template language. Dockerfile is the
 first backend target, not the authoring surface.
+
+The active implementation is Java and Maven-native:
+
+- `ddsl-core`: reusable compiler library
+- `ddsl-cli`: command-line frontend for local testing and CI
+- `ddsl-maven-plugin`: Maven goal for project builds
+
+The original Rust implementation remains in the repository as a working
+prototype and behavior reference.
 
 ## Why This Exists
 
@@ -27,29 +37,68 @@ to Docker.
 
 ## Quickstart
 
-Compile an example DSL file to stdout:
+Build and test the Java Maven reactor:
 
 ```sh
-cargo run --bin transpiler -- examples/java.dsl
+mvn package
 ```
 
-Write the generated Dockerfile to a file:
+Run the command-line transpiler on Linux or macOS:
 
 ```sh
-cargo run --bin transpiler -- examples/java.dsl Dockerfile
+./scripts/ddsl examples/java.dsl
+./scripts/ddsl examples/java.dsl -o target/Dockerfile
 ```
 
-If your environment sets a Rust compiler wrapper that blocks local builds, run:
+Run the command-line transpiler on Windows:
+
+```bat
+scripts\ddsl.cmd examples\java.dsl
+scripts\ddsl.cmd examples\java.dsl -o target\Dockerfile
+```
+
+The scripts build `ddsl-cli` automatically if the executable jar is missing.
+You can also run the jar directly after `mvn package`:
 
 ```sh
-env -u RUSTC_WRAPPER cargo run --bin transpiler -- examples/java.dsl
+java -jar ddsl-cli/target/ddsl-cli-0.1.0-SNAPSHOT-all.jar examples/java.dsl
 ```
 
-Run the test suite:
+## Maven Plugin
+
+Use the Maven plugin from a project by adding `ddsl-maven-plugin` to the
+project `pom.xml`:
+
+```xml
+<plugin>
+  <groupId>city.fini</groupId>
+  <artifactId>ddsl-maven-plugin</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+  <configuration>
+    <input>${project.basedir}/container.dsl</input>
+    <output>${project.build.directory}/Dockerfile</output>
+  </configuration>
+  <executions>
+    <execution>
+      <goals>
+        <goal>transpile</goal>
+      </goals>
+      <phase>generate-resources</phase>
+    </execution>
+  </executions>
+</plugin>
+```
+
+Run the goal directly:
 
 ```sh
-env -u RUSTC_WRAPPER cargo test
+mvn city.fini:ddsl-maven-plugin:0.1.0-SNAPSHOT:transpile \
+  -Dddsl.input=container.dsl \
+  -Dddsl.output=target/Dockerfile
 ```
+
+Or bind it to `generate-resources` as shown above so it runs during the normal
+Maven lifecycle.
 
 ## DSL At A Glance
 
@@ -256,18 +305,25 @@ tool node {
 ## Project Layout
 
 ```text
+ddsl-core/
+  src/main/java/city/fini/ddsl/
+    ast/                    typed parsed AST
+    diagnostics/            structured diagnostics
+    generator/              Dockerfile backend
+    metadata/               distro, mutability, package-manager, tool metadata
+    model/                  semantic model
+    parser/                 lexer and recursive-descent parser
+    semantics/              variable resolution, model construction, validation
+    DdslCompiler.java       public compiler API
+
+ddsl-cli/
+  src/main/java/...         CLI frontend
+
+ddsl-maven-plugin/
+  src/main/java/...         Maven `ddsl:transpile` goal
+
 src/
-  ast.rs                   typed parsed AST
-  error.rs                 structured diagnostics
-  generator/dockerfile.rs  Dockerfile backend
-  grammar.pest             pest grammar
-  lib.rs                   compile pipeline entrypoint
-  main.rs                  CLI
-  metadata.rs              distro, mutability, package-manager, tool metadata
-  model.rs                 semantic model
-  parser.rs                pest -> AST
-  semantics.rs             variable resolution and model construction
-  validate.rs              semantic validation
+  ...                       Rust prototype/reference implementation
 
 examples/                  DSL examples
 expected/                  golden Dockerfile outputs
