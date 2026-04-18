@@ -17,9 +17,6 @@ The active implementation is Java and Maven-native:
 - `ddsl-cli`: command-line frontend for local testing and CI
 - `ddsl-maven-plugin`: Maven goal for project builds
 
-The original Rust implementation remains in the repository as a working
-prototype and behavior reference.
-
 ## Why This Exists
 
 Dockerfiles mix intent with low-level mechanics:
@@ -322,12 +319,8 @@ ddsl-cli/
 ddsl-maven-plugin/
   src/main/java/...         Maven `ddsl:transpile` goal
 
-src/
-  ...                       Rust prototype/reference implementation
-
 examples/                  DSL examples
 expected/                  golden Dockerfile outputs
-tests/                     parser, semantic, golden, and failure tests
 ```
 
 ## Pipeline
