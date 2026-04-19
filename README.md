@@ -68,7 +68,7 @@ project `pom.xml`:
 
 ```xml
 <plugin>
-  <groupId>city.fini</groupId>
+  <groupId>ie.bitstep.ddsl</groupId>
   <artifactId>ddsl-maven-plugin</artifactId>
   <version>0.1.0-SNAPSHOT</version>
   <configuration>
@@ -89,7 +89,7 @@ project `pom.xml`:
 Run the goal directly:
 
 ```sh
-mvn city.fini:ddsl-maven-plugin:0.1.0-SNAPSHOT:transpile \
+mvn ie.bitstep.ddsl:ddsl-maven-plugin:0.1.0-SNAPSHOT:transpile \
   -Dddsl.input=container.dsl \
   -Dddsl.output=target/Dockerfile
 ```
@@ -311,7 +311,7 @@ tool node {
 
 ```text
 ddsl-core/
-  src/main/java/city/fini/ddsl/
+  src/main/java/ie/bitstep/ddsl/
     ast/                    typed parsed AST
     diagnostics/            structured diagnostics
     generator/              Dockerfile backend

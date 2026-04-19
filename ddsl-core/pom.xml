@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>city.fini</groupId>
+    <groupId>ie.bitstep.ddsl</groupId>
     <artifactId>ddsl-parent</artifactId>
     <version>0.1.0-SNAPSHOT</version>
   </parent>
