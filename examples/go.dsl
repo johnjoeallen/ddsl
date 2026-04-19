@@ -41,7 +41,7 @@ stage image as image {
   carry tool ca-certificates
 
   runtime binary {
-    entry "/go/src/region-api/region-api"
+    entry runtime_region_api
   }
 
   expose 3000

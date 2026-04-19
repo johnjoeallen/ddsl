@@ -27,6 +27,7 @@ public final class SemanticAnalyzer {
     List<StageModel> stages = new ArrayList<>();
 
     for (StageDecl stage : program.stages()) {
+      Map<String, String> targetArtifacts = new HashMap<>();
       BaseDecl baseDecl = stage.statements().stream()
           .filter(BaseDecl.class::isInstance)
           .map(BaseDecl.class::cast)
@@ -69,12 +70,14 @@ public final class SemanticAnalyzer {
                     + "' but was produced by stage '" + artifact.fromStage() + "'",
                 copy.sourceStage().get().span());
           }
+          String dest = resolveString(copy.dest().value(), variables, copy.dest().span());
+          targetName.ifPresent(target -> targetArtifacts.put(target, dest));
           ops.add(new Model.CopyArtifact(
               name,
               targetName,
               artifact.fromStage(),
               artifact.sourcePath(),
-              resolveString(copy.dest().value(), variables, copy.dest().span())));
+              dest));
         } else if (stmt instanceof ToolBlock tool) {
           ops.add(new RunTool(tool.kind().value(), resolveToolConfig(tool.config(), variables, tool.span())));
         } else if (stmt instanceof ArtifactDecl artifact) {
@@ -92,7 +95,7 @@ public final class SemanticAnalyzer {
                   carry.name().span()));
           ops.add(new Model.CarryTool(name, fromStage));
         } else if (stmt instanceof RuntimeBlock runtime) {
-          ops.add(new Model.Runtime(runtime.kind().value(), resolveRuntimeConfig(runtime.config(), variables, runtime.span())));
+          ops.add(new Model.Runtime(runtime.kind().value(), resolveRuntimeConfig(runtime.config(), variables, targetArtifacts, runtime.span())));
         } else if (stmt instanceof Ast.Expose expose) {
           ops.add(new Model.Expose(expose.port().value()));
         }
@@ -124,12 +127,26 @@ public final class SemanticAnalyzer {
     return config;
   }
 
-  private static RuntimeConfig resolveRuntimeConfig(RuntimeConfig config, Map<String, String> vars, Span span) {
-    if (config instanceof BinaryRuntime binary) return new BinaryRuntime(resolveString(binary.entry(), vars, span));
-    if (config instanceof JavaRuntime java) return new JavaRuntime(resolveString(java.jar(), vars, span));
-    if (config instanceof PythonRuntime python) return new PythonRuntime(resolveString(python.entry(), vars, span));
-    if (config instanceof NodeRuntime node) return new NodeRuntime(resolveString(node.entry(), vars, span));
+  private static RuntimeConfig resolveRuntimeConfig(RuntimeConfig config, Map<String, String> vars, Map<String, String> targetArtifacts, Span span) {
+    if (config instanceof BinaryRuntime binary) return new BinaryRuntime(resolveRuntimeValue(binary.entry(), vars, targetArtifacts));
+    if (config instanceof JavaRuntime java) return new JavaRuntime(resolveRuntimeValue(java.jar(), vars, targetArtifacts));
+    if (config instanceof PythonRuntime python) return new PythonRuntime(resolveRuntimeValue(python.entry(), vars, targetArtifacts));
+    if (config instanceof NodeRuntime node) return new NodeRuntime(resolveRuntimeValue(node.entry(), vars, targetArtifacts));
     return config;
+  }
+
+  private static RuntimeValue resolveRuntimeValue(RuntimeValue value, Map<String, String> vars, Map<String, String> targetArtifacts) {
+    if (!value.artifactReference()) {
+      return new RuntimeValue(resolveString(value.value(), vars, value.span()), value.span(), false);
+    }
+    String path = targetArtifacts.get(value.value());
+    if (path == null) {
+      throw new DdslException(
+          "runtime references target artifact '" + value.value() + "' but no prior copy artifact statement declared it",
+          value.span(),
+          "copy an artifact with `as " + value.value() + "` before the runtime block, or use a quoted runtime path");
+    }
+    return new RuntimeValue(path, value.span(), false);
   }
 
   private static String resolveString(String input, Map<String, String> vars, Span span) {

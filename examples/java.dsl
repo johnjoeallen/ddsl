@@ -39,7 +39,7 @@ stage image as image {
   copy artifact package.application as app to "/app/app.jar"
 
   runtime java {
-    jar "/app/app.jar"
+    jar app
   }
 
   expose 8000

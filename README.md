@@ -145,7 +145,7 @@ stage image as image {
   copy artifact package.application as app to "/app/app.jar"
 
   runtime java {
-    jar "/app/app.jar"
+    jar app
   }
 
   expose 8000
@@ -202,6 +202,28 @@ That says: copy the build artifact labeled `application` from stage
 `package`, treat it as target artifact `app`, and place it at `/app/app.jar`.
 The `.` is a qualifier separator, so artifact labels are unquoted identifiers
 and stage-qualified references use `stage_name.artifact_name`.
+
+Runtime blocks can use a target artifact label instead of repeating the target
+path:
+
+```text
+runtime java {
+  jar app
+}
+```
+
+The compiler resolves `app` to `/app/app.jar` because the prior copy statement
+declared `as app`. Quoted runtime values remain literal paths or commands:
+
+```text
+runtime node {
+  entry "index.js"
+}
+```
+
+Use a label when the copied target artifact is the runtime object itself, such
+as a binary or jar. Use a quoted entry when the copied artifact is a directory
+tree and the runtime starts a file inside it.
 
 Identifiers use letters, digits, and underscores. Use names such as
 `package`, `python_application`, and `runtime_region_api`. Hyphenated names

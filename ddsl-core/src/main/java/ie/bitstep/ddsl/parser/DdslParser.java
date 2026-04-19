@@ -263,18 +263,23 @@ public final class DdslParser {
     RuntimeKind kind = runtimeKind(kindToken);
     expect(TokenType.LBRACE, "expected '{' after runtime kind");
     RuntimeConfig config = switch (kind) {
-      case BINARY -> new BinaryRuntime(requiredRuntimeString("entry"));
-      case JAVA -> new JavaRuntime(requiredRuntimeString("jar"));
-      case PYTHON -> new PythonRuntime(requiredRuntimeString("entry"));
-      case NODE -> new NodeRuntime(requiredRuntimeString("entry"));
+      case BINARY -> new BinaryRuntime(requiredRuntimeValue("entry"));
+      case JAVA -> new JavaRuntime(requiredRuntimeValue("jar"));
+      case PYTHON -> new PythonRuntime(requiredRuntimeValue("entry"));
+      case NODE -> new NodeRuntime(requiredRuntimeValue("entry"));
     };
     Token end = expect(TokenType.RBRACE, "expected '}' after runtime");
     return new RuntimeBlock(new Node<>(kind, kindToken.span()), config, new Span(start.span().start(), end.span().end()));
   }
 
-  private String requiredRuntimeString(String field) {
+  private RuntimeValue requiredRuntimeValue(String field) {
     expectIdent(field);
-    return stringNode().value();
+    if (check(TokenType.STRING)) {
+      Node<String> value = stringNode();
+      return new RuntimeValue(value.value(), value.span(), false);
+    }
+    Node<String> value = identNode();
+    return new RuntimeValue(value.value(), value.span(), true);
   }
 
   private List<Node<String>> identList() {

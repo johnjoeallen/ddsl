@@ -143,13 +143,13 @@ public final class DockerfileGenerator {
 
   private static void emitRuntime(StringBuilder out, RuntimeConfig config) {
     if (config instanceof BinaryRuntime binary) {
-      out.append("ENTRYPOINT [").append(jsonArgs(binary.entry())).append("]\n");
+      out.append("ENTRYPOINT [").append(jsonArgs(binary.entry().value())).append("]\n");
     } else if (config instanceof JavaRuntime java) {
-      out.append("ENTRYPOINT [").append(jsonArgs("java", "-jar", java.jar())).append("]\n");
+      out.append("ENTRYPOINT [").append(jsonArgs("java", "-jar", java.jar().value())).append("]\n");
     } else if (config instanceof PythonRuntime python) {
-      out.append("ENTRYPOINT [").append(jsonArgs("python", python.entry())).append("]\n");
+      out.append("ENTRYPOINT [").append(jsonArgs("python", python.entry().value())).append("]\n");
     } else if (config instanceof NodeRuntime node) {
-      out.append("ENTRYPOINT [").append(jsonArgs("node", node.entry())).append("]\n");
+      out.append("ENTRYPOINT [").append(jsonArgs("node", node.entry().value())).append("]\n");
     }
   }
 

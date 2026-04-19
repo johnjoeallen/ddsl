@@ -90,6 +90,17 @@ final class DdslCompilerTest {
   }
 
   @Test
+  void rejectsMissingRuntimeArtifactLabel() {
+    DdslException err = assertThrows(DdslException.class, () -> compiler.compileToDockerfile("""
+        stage image as image {
+          base chainguard { variant runtime distro wolfi image "img" }
+          runtime java { jar app }
+        }
+        """));
+    assertTrue(err.diagnostic().message().contains("runtime references target artifact 'app'"));
+  }
+
+  @Test
   void rejectsImageStageNotLast() {
     DdslException err = assertThrows(DdslException.class, () -> compiler.compileToDockerfile("""
         stage image as image {

@@ -95,15 +95,17 @@ public final class Ast {
     NODE
   }
 
+  public record RuntimeValue(String value, Span span, boolean artifactReference) {}
+
   public sealed interface RuntimeConfig permits BinaryRuntime, JavaRuntime, PythonRuntime, NodeRuntime {}
 
-  public record BinaryRuntime(String entry) implements RuntimeConfig {}
+  public record BinaryRuntime(RuntimeValue entry) implements RuntimeConfig {}
 
-  public record JavaRuntime(String jar) implements RuntimeConfig {}
+  public record JavaRuntime(RuntimeValue jar) implements RuntimeConfig {}
 
-  public record PythonRuntime(String entry) implements RuntimeConfig {}
+  public record PythonRuntime(RuntimeValue entry) implements RuntimeConfig {}
 
-  public record NodeRuntime(String entry) implements RuntimeConfig {}
+  public record NodeRuntime(RuntimeValue entry) implements RuntimeConfig {}
 
   public record Expose(Node<Integer> port) implements StageStmt {}
 }
