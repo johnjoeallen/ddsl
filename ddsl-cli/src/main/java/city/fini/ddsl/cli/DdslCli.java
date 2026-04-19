@@ -1,6 +1,7 @@
 package city.fini.ddsl.cli;
 
 import city.fini.ddsl.DdslCompiler;
+import city.fini.ddsl.diagnostics.DiagnosticRenderer;
 import city.fini.ddsl.diagnostics.DdslException;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -37,11 +38,20 @@ public final class DdslCli {
       }
       return 0;
     } catch (DdslException err) {
-      System.err.println("error: " + err.diagnostic());
+      String source = readSourceBestEffort(args[0]);
+      System.err.println(DiagnosticRenderer.render(err.diagnostic(), args[0], source));
       return 1;
     } catch (IOException err) {
       System.err.println("error: " + err.getMessage());
       return 1;
+    }
+  }
+
+  private static String readSourceBestEffort(String path) {
+    try {
+      return Files.readString(Path.of(path));
+    } catch (IOException ignored) {
+      return null;
     }
   }
 }

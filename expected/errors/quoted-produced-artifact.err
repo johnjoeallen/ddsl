@@ -1,0 +1,6 @@
+error: artifact labels are identifiers, not strings
+
+  --> examples/errors/quoted-produced-artifact.dsl:3:21
+   3 |   produces artifact "application" at "/app/target/application.jar"
+     |                     ^^^^^^^^^^^^^
+help: write `produces artifact application at "/path/or/pattern"`

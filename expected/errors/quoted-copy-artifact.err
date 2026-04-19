@@ -1,0 +1,6 @@
+error: artifact references are identifiers, not strings
+
+  --> examples/errors/quoted-copy-artifact.dsl:3:17
+   3 |   copy artifact "application" to "/app/app.jar"
+     |                 ^^^^^^^^^^^^^
+help: write `copy artifact package.application as app to "/app/app.jar"`

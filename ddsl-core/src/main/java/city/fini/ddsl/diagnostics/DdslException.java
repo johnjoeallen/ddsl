@@ -7,6 +7,10 @@ public final class DdslException extends RuntimeException {
     this(new Diagnostic(message, span));
   }
 
+  public DdslException(String message, Span span, String help) {
+    this(new Diagnostic(message, span, help));
+  }
+
   public DdslException(Diagnostic diagnostic) {
     super(diagnostic.toString());
     this.diagnostic = diagnostic;

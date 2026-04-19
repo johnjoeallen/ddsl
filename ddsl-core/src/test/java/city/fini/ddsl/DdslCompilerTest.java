@@ -4,8 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import city.fini.ddsl.diagnostics.DiagnosticRenderer;
 import city.fini.ddsl.diagnostics.DdslException;
 import java.io.IOException;
+import java.util.List;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
@@ -19,6 +21,13 @@ final class DdslCompilerTest {
     assertGolden("java");
     assertGolden("python");
     assertGolden("node");
+  }
+
+  @Test
+  void syntaxErrorDiagnosticsMatch() throws IOException {
+    for (String name : List.of("hyphenated-stage", "missing-stage-as", "quoted-copy-artifact", "quoted-produced-artifact")) {
+      assertSyntaxErrorGolden(name);
+    }
   }
 
   @Test
@@ -130,5 +139,14 @@ final class DdslCompilerTest {
     String expected = Files.readString(Path.of("..", "expected", name + ".Dockerfile")).stripTrailing();
     String actual = compiler.compileToDockerfile(source).stripTrailing();
     assertEquals(expected, actual, name + " golden mismatch");
+  }
+
+  private void assertSyntaxErrorGolden(String name) throws IOException {
+    Path sourcePath = Path.of("..", "examples", "errors", name + ".dsl");
+    String source = Files.readString(sourcePath);
+    DdslException err = assertThrows(DdslException.class, () -> compiler.compileToDockerfile(source));
+    String expected = Files.readString(Path.of("..", "expected", "errors", name + ".err")).stripTrailing();
+    String actual = DiagnosticRenderer.render(err.diagnostic(), "examples/errors/" + name + ".dsl", source).stripTrailing();
+    assertEquals(expected, actual, name + " diagnostic mismatch");
   }
 }

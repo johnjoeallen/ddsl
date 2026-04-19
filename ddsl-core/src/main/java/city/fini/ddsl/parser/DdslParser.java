@@ -46,6 +46,12 @@ public final class DdslParser {
   private StageDecl parseStage() {
     Token start = expectIdent("stage");
     Node<String> name = identNode();
+    if (!checkIdent("as")) {
+      throw error(
+          peek(),
+          "invalid stage declaration: expected 'as' after stage name",
+          "write `stage <name> as build|test|image { ... }`");
+    }
     expectIdent("as");
     Node<StageKind> kind = new Node<>(stageKind(expect(TokenType.IDENT, "expected stage kind")), previous().span());
     expect(TokenType.LBRACE, "expected '{' after stage declaration");
@@ -127,14 +133,32 @@ public final class DdslParser {
   private StageStmt parseCopy() {
     Token start = expectIdent("copy");
     if (matchIdent("artifact")) {
+      if (check(TokenType.STRING)) {
+        throw error(
+            peek(),
+            "artifact references are identifiers, not strings",
+            "write `copy artifact package.application as app to \"/app/app.jar\"`");
+      }
       Node<String> name = identNode();
       Optional<Node<String>> sourceStage = Optional.empty();
       if (match(TokenType.DOT)) {
         sourceStage = Optional.of(name);
+        if (check(TokenType.STRING)) {
+          throw error(
+              peek(),
+              "artifact labels are identifiers, not strings",
+              "write `copy artifact package.application to \"/path\"`");
+        }
         name = identNode();
       }
       Optional<Node<String>> target = Optional.empty();
       if (matchIdent("as")) {
+        if (check(TokenType.STRING)) {
+          throw error(
+              peek(),
+              "target artifact names are identifiers, not strings",
+              "write `copy artifact package.application as app to \"/app/app.jar\"`");
+        }
         target = Optional.of(identNode());
       }
       expectIdent("to");
@@ -214,6 +238,12 @@ public final class DdslParser {
   private ArtifactDecl parseProduces() {
     Token start = expectIdent("produces");
     expectIdent("artifact");
+    if (check(TokenType.STRING)) {
+      throw error(
+          peek(),
+          "artifact labels are identifiers, not strings",
+          "write `produces artifact application at \"/path/or/pattern\"`");
+    }
     Node<String> name = identNode();
     expectIdent("at");
     Node<String> path = stringNode();
@@ -274,7 +304,10 @@ public final class DdslParser {
   private Node<String> identNode() {
     Token token = expect(TokenType.IDENT, "expected identifier");
     if (check(TokenType.DASH)) {
-      throw error(peek(), "hyphenated identifiers are not supported; use '_' in identifiers");
+      throw error(
+          peek(),
+          "hyphenated identifiers are not supported; use '_' in identifiers",
+          "rename the identifier without '-' characters, for example `package` or `java_package`");
     }
     return new Node<>(token.text(), token.span());
   }
@@ -405,5 +438,9 @@ public final class DdslParser {
 
   private DdslException error(Token token, String message) {
     return new DdslException(message, token.span());
+  }
+
+  private DdslException error(Token token, String message, String help) {
+    return new DdslException(message, token.span(), help);
   }
 }

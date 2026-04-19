@@ -328,7 +328,9 @@ ddsl-maven-plugin/
   src/main/java/...         Maven `ddsl:transpile` goal
 
 examples/                  DSL examples
+examples/errors/           invalid DSL examples for diagnostic tests
 expected/                  golden Dockerfile outputs
+expected/errors/           golden compiler error output
 ```
 
 ## Pipeline
@@ -340,6 +342,24 @@ expected/                  golden Dockerfile outputs
 5. Validate stage ordering, artifact references, mutability, tools, runtime rules,
    and metadata support.
 6. Generate a deterministic Dockerfile.
+
+## Diagnostics
+
+Parser and semantic errors are rendered with source locations, the relevant
+source line, a caret marker, and help text where the compiler can give a
+specific correction.
+
+```text
+error: hyphenated identifiers are not supported; use '_' in identifiers
+
+  --> examples/errors/hyphenated-stage.dsl:1:12
+   1 | stage build-java as build {
+     |            ^
+help: rename the identifier without '-' characters, for example `package` or `java_package`
+```
+
+Invalid-input fixtures live in `examples/errors`, with expected output in
+`expected/errors`.
 
 ## Current Limitations
 

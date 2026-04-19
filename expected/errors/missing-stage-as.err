@@ -1,0 +1,6 @@
+error: invalid stage declaration: expected 'as' after stage name
+
+  --> examples/errors/missing-stage-as.dsl:1:15
+   1 | stage package build {
+     |               ^^^^^
+help: write `stage <name> as build|test|image { ... }`

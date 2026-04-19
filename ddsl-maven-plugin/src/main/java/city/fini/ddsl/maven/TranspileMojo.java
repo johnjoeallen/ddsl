@@ -1,6 +1,7 @@
 package city.fini.ddsl.maven;
 
 import city.fini.ddsl.DdslCompiler;
+import city.fini.ddsl.diagnostics.DiagnosticRenderer;
 import city.fini.ddsl.diagnostics.DdslException;
 import java.io.File;
 import java.io.IOException;
@@ -29,9 +30,18 @@ public final class TranspileMojo extends AbstractMojo {
       Files.writeString(output.toPath(), dockerfile);
       getLog().info("Generated Dockerfile: " + output);
     } catch (DdslException err) {
-      throw new MojoExecutionException(err.diagnostic().toString(), err);
+      String source = readSourceBestEffort();
+      throw new MojoExecutionException(DiagnosticRenderer.render(err.diagnostic(), input.toString(), source), err);
     } catch (IOException err) {
       throw new MojoExecutionException("failed to transpile " + input + " to " + output, err);
+    }
+  }
+
+  private String readSourceBestEffort() {
+    try {
+      return Files.readString(input.toPath());
+    } catch (IOException ignored) {
+      return null;
     }
   }
 }

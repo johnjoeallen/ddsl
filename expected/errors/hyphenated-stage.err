@@ -1,0 +1,6 @@
+error: hyphenated identifiers are not supported; use '_' in identifiers
+
+  --> examples/errors/hyphenated-stage.dsl:1:12
+   1 | stage build-java as build {
+     |            ^
+help: rename the identifier without '-' characters, for example `package` or `java_package`
