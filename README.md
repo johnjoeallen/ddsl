@@ -104,6 +104,8 @@ let REGISTRY = "docker.io"
 
 stage package as build {
   base chainguard {
+    # Explicit compiler metadata, not inferred from the image tag.
+    # `dev` means this stage is mutable and may run update/tools.
     variant dev
     distro  wolfi
     image   "{{REGISTRY}}/base-images/chainguard/openjdk:24.0.1-dev"
@@ -130,6 +132,8 @@ stage package as build {
 
 stage image as image {
   base chainguard {
+    # Runtime images are structurally immutable even if the image name changes.
+    # The compiler validates this from `variant runtime`, not from the tag.
     variant runtime
     distro  wolfi
     image   "{{REGISTRY}}/base-images/chainguard/openjdk:24.0.1"
@@ -147,6 +151,11 @@ stage image as image {
   expose 8000
 }
 ```
+
+Some fields intentionally look redundant. For example, `variant dev` is still
+required even when the image tag ends in `-dev`. The compiler never derives
+mutability, package-manager behavior, or runtime rules from image-name
+conventions; those decisions come from explicit DSL metadata.
 
 Generated shape:
 
