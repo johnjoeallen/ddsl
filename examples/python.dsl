@@ -10,6 +10,8 @@ stage package as build {
   workdir "/usr/src/app"
   user "root"
 
+  update
+
   copy ["requirements.txt"] to "./"
 
   tool python {

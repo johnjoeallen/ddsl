@@ -3,6 +3,7 @@
 FROM docker.io/base-images/chainguard/openjdk:24.0.1-dev AS package
 WORKDIR /app
 USER root
+RUN apk update && apk upgrade --no-cache
 COPY mvnw pom.xml ./
 RUN mvn -B dependency:go-offline
 COPY src spec ./

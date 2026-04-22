@@ -10,6 +10,8 @@ stage package as build {
   workdir "/app"
   user "root"
 
+  update
+
   copy ["mvnw", "pom.xml"] to "./"
 
   tool maven {

@@ -3,6 +3,7 @@
 FROM docker.io/base-images/chainguard/python:3.13.4-dev AS package
 WORKDIR /usr/src/app
 USER root
+RUN apk update && apk upgrade --no-cache
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 COPY ./ ./
